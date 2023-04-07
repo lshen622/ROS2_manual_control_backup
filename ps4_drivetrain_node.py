@@ -61,8 +61,8 @@ class PS4DrivetrainNode(Node):
         left_stick_y = msg.axes[1]  # Left stick vertical axis (up/down)
 
         # Calculate motor speeds based on left stick input
-        left_speed = (left_stick_y + left_stick_x) * 255  # Scale to [0, 255] for MDD20A
-        right_speed = (left_stick_y - left_stick_x) * 255  # Scale to [0, 255] for MDD20A
+        left_speed = (left_stick_y + left_stick_x) * 255  # Scale to [0, 255] for MDD20A for the speed of the motor
+        right_speed = (left_stick_y - left_stick_x) * 255  # Scale to [0, 255] for MDD20A for the speed of the motor
 
         # Set motor speeds and directions
         self.set_motor_speed(self.left_motor_pwm, self.left_motor_dir, left_speed)
@@ -76,6 +76,14 @@ class PS4DrivetrainNode(Node):
             self.pi.write(dir_pin, 0)
 
         self.pi.set_PWM_dutycycle(pwm_pin, abs(speed))
+        
+    # def set_motor_speed(self, pwm_pin, dir_pin, speed):
+    #     # Set motor speed and direction based on the given speed value
+    #     direction = 1 if speed >= 0 else 0
+    #     speed = abs(speed)
+
+    #     self.pi.write(dir_pin, direction)
+    #     self.pi.set_PWM_dutycycle(pwm_pin, speed)
 
     def on_shutdown(self):
         # Stop motors and release GPIO resources
