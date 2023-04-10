@@ -33,15 +33,16 @@ chmod +x src/ps4_drivetrain/ps4_drivetrain_node.py
 """
 
 import rclpy
-import pigpio
+import RPi.GPIO as GPIO
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 
+
 class PS4DrivetrainNode(Node):
     def __init__(self):
-        super().__init__('ps4_drivetrain_node') #name for the node
-        self.subscription = self.create_subscription(Joy, 'joy', self.joy_callback, 10) # creates ROS2 subscription to listen to 'Joy' messages published on the 'joy topic'
-        self.subscription  # prevent unused variable warning
+        super().__init__('ps4_drivetrain_node')
+        self.subscription = self.create_subscription(Joy, 'ps4_joy', self.joy_callback, 10)
+        self.subscription
 
         # Set GPIO pin assignments for motors
         self.left_motor_pwm = 15
@@ -49,61 +50,56 @@ class PS4DrivetrainNode(Node):
         self.right_motor_pwm = 11
         self.right_motor_dir = 13
 
-        # Initialize pigpio and set GPIO pins as output
-        self.pi = pigpio.pi()
-        self.pi.set_mode(self.left_motor_pwm, pigpio.OUTPUT)
-        self.pi.set_mode(self.left_motor_dir, pigpio.OUTPUT)
-        self.pi.set_mode(self.right_motor_pwm, pigpio.OUTPUT)
-        self.pi.set_mode(self.right_motor_dir, pigpio.OUTPUT)
+        # Initialize RPi.GPIO and set GPIO pins as output
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.left_motor_pwm, GPIO.OUT)
+        GPIO.setup(self.left_motor_dir, GPIO.OUT)
+        GPIO.setup(self.right_motor_pwm, GPIO.OUT)
+        GPIO.setup(self.right_motor_dir, GPIO.OUT)
+
+        # Initialize PWM
+        self.left_motor = GPIO.PWM(self.left_motor_pwm, 100)
+        self.right_motor = GPIO.PWM(self.right_motor_pwm, 100)
+        self.left_motor.start(0)
+        self.right_motor.start(0)
 
     def joy_callback(self, msg):
-        left_stick_x = msg.axes[0]  # Left stick horizontal axis (left/right)
-        left_stick_y = msg.axes[1]  # Left stick vertical axis (up/down)
+        left_stick_x = msg.axes[0]
+        left_stick_y = msg.axes[1]
 
-        # Calculate motor speeds based on left stick input
-        left_speed = (left_stick_y + left_stick_x) * 255  # Scale to [0, 255] for MDD20A for the speed of the motor
-        right_speed = (left_stick_y - left_stick_x) * 255  # Scale to [0, 255] for MDD20A for the speed of the motor
+        left_speed = (left_stick_y + left_stick_x) * 100
+        right_speed = (left_stick_y - left_stick_x) * 100
 
-        # Set motor speeds and directions
-        self.set_motor_speed(self.left_motor_pwm, self.left_motor_dir, left_speed)
-        self.set_motor_speed(self.right_motor_pwm, self.right_motor_dir, right_speed)
+        self.set_motor_speed(self.left_motor, self.left_motor_dir, left_speed)
+        self.set_motor_speed(self.right_motor, self.right_motor_dir, right_speed)
 
-    def set_motor_speed(self, pwm_pin, dir_pin, speed):
-        # Set motor speed and direction based on the given speed value
-        if speed > 0:
-            self.pi.write(dir_pin, 1)
-        else:
-            self.pi.write(dir_pin, 0)
+    def set_motor_speed(self, motor, dir_pin, speed):
+        direction = 1 if speed >= 0 else 0
+        speed = abs(speed)
 
-        self.pi.set_PWM_dutycycle(pwm_pin, abs(speed))
-        
-    # def set_motor_speed(self, pwm_pin, dir_pin, speed):
-    #     # Set motor speed and direction based on the given speed value
-    #     direction = 1 if speed >= 0 else 0
-    #     speed = abs(speed)
-
-    #     self.pi.write(dir_pin, direction)
-    #     self.pi.set_PWM_dutycycle(pwm_pin, speed)
+        GPIO.output(dir_pin, direction)
+        motor.ChangeDutyCycle(speed)
 
     def on_shutdown(self):
-        # Stop motors and release GPIO resources
-        self.pi.set_PWM_dutycycle(self.left_motor_pwm, 0)
-        self.pi.set_PWM_dutycycle(self.right_motor_pwm, 0)
-        self.pi.stop()
+        self.left_motor.stop()
+        self.right_motor.stop()
+        GPIO.cleanup()
+
 
 def main(args=None):
     rclpy.init(args=args)
     ps4_drivetrain_node = PS4DrivetrainNode()
 
-    # Register custom shutdown callback
     rclpy.on_shutdown(ps4_drivetrain_node.on_shutdown)
 
-    rclpy.spin(ps4_drivetrain_node) # infinite loop for running the code similar to "while(1){...}"
+    rclpy.spin(ps4_drivetrain_node)
     ps4_drivetrain_node.destroy_node()
     rclpy.shutdown()
 
+
 if __name__ == '__main__':
     main()
+
 
 
 """
