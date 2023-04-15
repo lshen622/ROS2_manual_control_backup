@@ -40,28 +40,32 @@ class DrivetrainNode(Node):
         left_speed = 0
         right_speed = 0
 
+        # set percentage of duty cycle (from -100 to 100)
+        speed_percentage = 100
+
         # Check if the joystick is pushed in any of the 4 directions
+        # the threshold for triggering moving is |0.98|
         if abs(left_stick_x) > 0.98 or abs(left_stick_y) > 0.98:
             if abs(left_stick_x) > abs(left_stick_y):
                 # Left or right movement
                 if left_stick_x > 0:
-                    # Right movement
-                    left_speed = 100
-                    right_speed = -100
-                else:
                     # Left movement
-                    left_speed = -100
-                    right_speed = 100
+                    left_speed = -speed_percentage
+                    right_speed = speed_percentage
+                else:
+                    # Right movement
+                    left_speed = speed_percentage
+                    right_speed = -speed_percentage
             else:
                 # Front or back movement
                 if left_stick_y > 0:
-                    # Front movement
-                    left_speed = 100
-                    right_speed = 100
-                else:
                     # Back movement
-                    left_speed = -100
-                    right_speed = -100
+                    left_speed = -speed_percentage
+                    right_speed = -speed_percentage
+                else:
+                    # Front movement
+                    left_speed = speed_percentage
+                    right_speed = speed_percentage
 
         self.set_motor_speed(self.left_motor, self.left_motor_dir, left_speed)
         self.set_motor_speed(self.right_motor, self.right_motor_dir, right_speed)
@@ -69,6 +73,7 @@ class DrivetrainNode(Node):
     def set_motor_speed(self, motor, dir_pin, speed):
         # Determine the direction of the motor based on the sign of the speed
         direction = 1 if speed >= 0 else 0
+        # direction = 0 if speed >= 0 else 1
         # Get the absolute value of the speed
         speed = abs(speed)
 
@@ -94,7 +99,7 @@ def main(args=None):
 
     # Spin the node to keep it running and processing callbacks
     rclpy.spin(drivetrain_node)
-    rclpy._shutdown(drivetrain_node.on_shutdown)    #not sure if this is correct
+    rclpy._shutdown(drivetrain_node.on_shutdown)    # not sure if this is correct
     # Clean up the node after spinning
     drivetrain_node.destroy_node()
     # Shutdown rclpy
