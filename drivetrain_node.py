@@ -40,8 +40,8 @@ class DrivetrainNode(Node):
         left_speed = 0
         right_speed = 0
 
-        # set percentage of duty cycle (from -100 to 100)
-        speed_percentage = 100
+        # SET THIS PART TO CHANGE MOTOR SPEED!!
+        speed_percentage = 50   # set percentage of duty cycle (from -100 to 100)
 
         # Check if the joystick is pushed in any of the 4 directions
         # the threshold for triggering moving is |0.98|
