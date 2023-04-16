@@ -10,8 +10,8 @@ class TailNode(Node):
         self.subscription
 
         # Set GPIO pin assignments for tail motor
-        self.tail_motor_pwm = 21
-        self.tail_motor_dir = 25
+        self.tail_motor_pwm = 9
+        self.tail_motor_dir = 11
 
         # Initialize RPi.GPIO and set GPIO pins as output
         GPIO.setmode(GPIO.BCM)

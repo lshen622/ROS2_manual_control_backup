@@ -12,6 +12,11 @@ class DrivetrainNode(Node):
         self.subscription
 
         # Set GPIO pin assignments for motors
+        # self.left_motor_pwm = 22
+        # self.left_motor_dir = 10
+        # self.right_motor_pwm = 17
+        # self.right_motor_dir = 27
+        
         self.left_motor_pwm = 15
         self.left_motor_dir = 19
         self.right_motor_pwm = 11

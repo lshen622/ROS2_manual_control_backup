@@ -26,9 +26,9 @@ class ControllerNode(Node):
                     r1 = self.controller.get_button(5)  # R1
                     
 
-                    # Create Joy message and populate axes values
+                    # Create Joy message and pack axes, buttons values into the package
                     joy_msg = Joy()
-                    joy_msg.axes = [left_stick_x, left_stick_y]
+                    joy_msg.axes = [left_stick_x, -left_stick_y]	# flip y_axis so that up is positive, down is negative
                     joy_msg.buttons = [l1, r1]
 
                     # Publish the Joy message
